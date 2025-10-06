@@ -234,8 +234,19 @@
     const initialDelay = 1000;
 
     async function fetchWithExponentialBackoff(url, options, retryCount = 0) {
+        // Tái tạo URL để đảm bảo apiKey được đính kèm đúng cách hoặc bỏ qua khi rỗng
+        let finalUrl = url;
+        
+        // Chỉ thêm apiKey vào URL nếu nó không rỗng
+        if (apiKey) {
+            const separator = url.includes('?') ? '&' : '?';
+            finalUrl = `${url}${separator}key=${apiKey}`;
+        }
+        // Ghi chú: Trong môi trường Canvas, Canvas sẽ tự động thêm key,
+        // nhưng việc đảm bảo logic URL đúng là rất quan trọng.
+
         try {
-            const response = await fetch(url, options);
+            const response = await fetch(finalUrl, options);
             if (!response.ok) {
                 // Throwing error to trigger retry logic
                 throw new Error(`HTTP error! status: ${response.status}`);
