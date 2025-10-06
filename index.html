@@ -9,31 +9,65 @@
     align-items: center;
     margin: 0;
     padding: 20px;
-    background-color: transparent; /* Giữ trong suốt để hòa hợp với nền Google Sites */
+    background-color: transparent; 
     box-sizing: border-box;
   }
   
+  .main-wrapper {
+      max-width: 800px; /* Tăng chiều rộng tối đa cho bố cục 2 cột */
+      width: 100%;
+  }
+
   .container {
-    background-color: #444444; /* Nền xám đậm phù hợp với trang web */
+    background-color: #444444; /* Nền xám đậm */
     border-radius: 16px; 
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Bóng đổ đậm hơn cho nền tối */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); 
     padding: 24px;
-    max-width: 400px; 
     width: 100%;
     text-align: center;
-    color: #ffffff; /* Màu chữ mặc định là trắng */
+    color: #ffffff; 
+    margin-bottom: 20px;
   }
   
   h1.title {
-    color: #f0f0f0; /* Tiêu đề màu trắng sáng */
+    color: #f0f0f0; 
     font-size: 1.5rem;
     margin-bottom: 20px;
     font-weight: 700;
   }
   
+  /* Bố cục 2 cột cho màn hình lớn */
+  .content-layout {
+      display: flex;
+      gap: 20px; /* Khoảng cách giữa 2 cột */
+      align-items: flex-start; /* Căn trên cùng */
+  }
+
+  .webcam-column {
+      flex: 1; /* Chiếm 1 phần */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+  }
+
+  .info-column {
+      flex: 1; /* Chiếm 1 phần */
+  }
+
+  /* Responsive: Trên màn hình nhỏ, chuyển về 1 cột */
+  @media (max-width: 600px) {
+      .content-layout {
+          flex-direction: column;
+      }
+      .webcam-column, .info-column {
+          width: 100%;
+      }
+  }
+
+
   /* Styling cho nút Start */
   .start-button {
-    background-color: #3b82f6; /* Màu xanh nổi bật */
+    background-color: #3b82f6; 
     color: white;
     padding: 10px 20px;
     border: none;
@@ -44,60 +78,56 @@
     transition: background-color 0.3s ease, transform 0.1s ease;
     margin-bottom: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    width: 100%; /* Chiếm toàn bộ chiều ngang cột */
   }
   
-  .start-button:hover {
-    background-color: #2563eb;
-    transform: translateY(-1px);
-  }
-  
-  .start-button:active {
-    background-color: #1d4ed8;
-    transform: translateY(1px);
-  }
+  .start-button:hover { background-color: #2563eb; transform: translateY(-1px); }
+  .start-button:active { background-color: #1d4ed8; transform: translateY(1px); }
   
   /* Vùng chứa webcam */
   #webcam-container canvas {
-    border: 4px solid #666666; /* Viền xám trung tính */
+    border: 4px solid #666666; 
     border-radius: 12px;
     display: block; 
-    margin: 0 auto;
+    margin: 0 auto 10px; /* Thêm margin dưới */
     width: 100%; 
     height: auto;
+    max-width: 320px; /* Giới hạn kích thước camera */
   }
   
   /* Vùng chứa kết quả (Label) */
   #label-container {
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #555555; /* Nền xám nhạt hơn nền chính */
-    color: #ffffff; /* Chữ trắng */
-    font-size: 1.25rem;
+    padding: 10px 15px;
+    background-color: #555555; 
+    color: #ffffff; 
+    font-size: 1.1rem;
     font-weight: 700;
-    border-radius: 12px;
+    border-radius: 8px;
     min-height: 40px; 
     display: flex;
     justify-content: center;
     align-items: center;
     text-transform: uppercase; 
+    width: 100%;
+    max-width: 320px; /* Giới hạn kích thước */
   }
 
   /* Thêm hiệu ứng loading */
   .loading-message {
     font-style: italic;
-    color: #cccccc; /* Màu chữ xám nhạt */
+    color: #cccccc; 
     margin-bottom: 20px;
   }
 
   /* New styles for Gemini features */
   .gemini-section {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #666666; /* Đường viền xám nhạt */
+    padding-top: 0; 
+    border-top: none; 
+    margin-top: 0;
   }
   
   .gemini-button {
-    background-color: #f59e0b; /* Màu vàng, nổi bật */
+    background-color: #f59e0b; 
     color: white;
     padding: 10px 15px;
     border: none;
@@ -106,59 +136,36 @@
     font-weight: 700;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    margin-top: 15px;
+    margin-bottom: 15px;
+    width: 100%;
   }
 
-  .gemini-button:hover {
-    background-color: #d97706;
-  }
-  .gemini-button:disabled {
-    background-color: #fcd34d;
-    cursor: not-allowed;
-  }
+  .gemini-button:hover { background-color: #d97706; }
+  .gemini-button:disabled { background-color: #fcd34d; cursor: not-allowed; }
 
   #gemini-result-container {
-    margin-top: 15px;
+    margin-top: 0;
     padding: 15px;
-    background-color: #555555; /* Nền xám nhạt hơn */
+    background-color: #555555; 
     border-radius: 8px;
     text-align: left;
-    min-height: 50px;
+    min-height: 150px; /* Tăng chiều cao tối thiểu để giảm giật */
     line-height: 1.4;
     font-size: 0.9rem;
-    color: #f0f0f0; /* Chữ sáng */
+    color: #f0f0f0; 
+    overflow-y: auto; /* Cho phép cuộn bên trong nếu nội dung quá dài */
+    max-height: 350px; /* Giới hạn chiều cao cho desktop */
   }
 
   /* Cải thiện hiển thị Markdown: List và Paragraph */
-  #gemini-result-container p {
-    margin-bottom: 10px;
-    line-height: 1.6; /* Tăng khoảng cách dòng */
-  }
-  #gemini-result-container ul {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding-left: 20px;
-  }
-  #gemini-result-container li {
-    margin-bottom: 5px;
-    line-height: 1.4;
-    font-weight: 400;
-  }
-  #gemini-result-container strong {
-    color: #ffcc66; /* Tô màu vàng sáng cho chữ in đậm */
-  }
+  #gemini-result-container p { margin-bottom: 10px; line-height: 1.6; }
+  #gemini-result-container ul { margin-top: 10px; margin-bottom: 10px; padding-left: 20px; }
+  #gemini-result-container li { margin-bottom: 5px; line-height: 1.4; font-weight: 400; }
+  #gemini-result-container strong { color: #ffcc66; }
 
-  .gemini-loading {
-    color: #ffcc66; /* Màu vàng sáng */
-    font-style: italic;
-  }
-  .gemini-error {
-    color: #ff8888; /* Màu đỏ sáng */
-    font-weight: 600;
-  }
-  .gemini-response {
-    color: #ffffff;
-  }
+  .gemini-loading { color: #ffcc66; font-style: italic; }
+  .gemini-error { color: #ff8888; font-weight: 600; }
+  .gemini-response { color: #ffffff; }
   .gemini-sources {
       margin-top: 10px;
       font-size: 0.75rem;
@@ -166,40 +173,42 @@
       border-top: 1px dashed #666666;
       padding-top: 5px;
   }
-  .gemini-sources a {
-      color: #88ccee; /* Xanh da trời nhạt */
-      text-decoration: none;
-  }
-  .gemini-sources a:hover {
-      text-decoration: underline;
-  }
+  .gemini-sources a { color: #88ccee; text-decoration: none; }
+  .gemini-sources a:hover { text-decoration: underline; }
 </style>
 
-<div class="container">
-  <h1 class="title">Object Recognition (STEAM Project)</h1>
-  <div class="loading-message" id="status-message">Loading model...</div>
-  
-  <!-- Nút bấm gọi hàm startWebcam() -->
-  <button type="button" onclick="startWebcam()" class="start-button" id="start-button" disabled>START</button>
-  
-  <!-- Vùng hiển thị webcam -->
-  <div id="webcam-container"></div>
-  
-  <!-- Vùng hiển thị kết quả nhận diện -->
-  <div id="label-container">-- Waiting for model --</div>
+<div class="main-wrapper">
+    <div class="container">
+      <h1 class="title">Object Recognition (STEAM Project)</h1>
+      <div class="loading-message" id="status-message">Loading model...</div>
+      
+      <!-- Nút bấm gọi hàm startWebcam() - Đặt ngoài bố cục 2 cột cho màn hình nhỏ -->
+      <button type="button" onclick="startWebcam()" class="start-button" id="start-button" disabled>START</button>
+      
+      <div class="content-layout">
+          <!-- CỘT 1: WEBCAM & KẾT QUẢ DETECTION -->
+          <div class="webcam-column">
+              <!-- Vùng hiển thị webcam -->
+              <div id="webcam-container"></div>
+              
+              <!-- Vùng hiển thị kết quả nhận diện -->
+              <div id="label-container">-- Waiting for model --</div>
+          </div>
 
-  <!-- PHẦN TÍNH NĂNG GEMINI MỚI -->
-  <div class="gemini-section">
-      <!-- Nút gọi Gemini API -->
-      <button type="button" onclick="generateExplanation()" class="gemini-button" id="generate-button" disabled>
-          ✨ Get Info & Safety Guide
-      </button>
+          <!-- CỘT 2: GEMINI INFO & SAFETY -->
+          <div class="info-column gemini-section">
+              <!-- Nút gọi Gemini API -->
+              <button type="button" onclick="generateExplanation()" class="gemini-button" id="generate-button" disabled>
+                  ✨ Get Info & Safety Guide
+              </button>
 
-      <!-- Vùng hiển thị kết quả từ Gemini -->
-      <div id="gemini-result-container">
-          <p>Press the button after detection to get information and safety guide.</p>
+              <!-- Vùng hiển thị kết quả từ Gemini -->
+              <div id="gemini-result-container">
+                  <p>Press the button after detection to get information and safety guide.</p>
+              </div>
+          </div>
       </div>
-  </div>
+    </div>
 </div>
 
 <!-- Tải thư viện TensorFlow.js và Teachable Machine Image -->
