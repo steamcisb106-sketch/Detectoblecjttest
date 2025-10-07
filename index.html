@@ -1,431 +1,481 @@
-<style>
-  /* Định nghĩa font chung cho giao diện */
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
-  
-  body {
-    font-family: 'Inter', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
-    padding: 20px;
-    background-color: transparent; 
-    box-sizing: border-box;
-  }
-  
-  .main-wrapper {
-      max-width: 800px; /* Tăng chiều rộng tối đa cho bố cục 2 cột */
-      width: 100%;
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEAM Tool Detector</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Teachable Machine and TensorFlow -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <!-- Thư viện chuyển đổi Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/lib/marked.umd.min.js"></script> 
+    <style>
+        /* Custom font and basic setup */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        /* Style for the chat box */
+        .chat-message {
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #dbeafe; /* Blue-100 */
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .ai-message {
+            background-color: #f3f4f6; /* Gray-100 */
+            align-self: flex-start;
+        }
+        /* Custom styles for info display */
+        #info-display h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #1f2937; /* Gray-800 */
+        }
+        #info-display strong {
+            color: #10b981; /* Emerald-500 */
+        }
+        #info-display ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            padding-left: 0;
+            margin-top: 0.5rem;
+        }
+        #info-display li {
+            margin-bottom: 0.25rem;
+        }
+        /* Highlight for dangerous tools */
+        .ask-teacher {
+            color: #ef4444; /* Red-500 */
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
 
-  .container {
-    background-color: #444444; /* Nền xám đậm */
-    border-radius: 16px; 
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); 
-    padding: 24px;
-    width: 100%;
-    text-align: center;
-    color: #ffffff; 
-    margin-bottom: 20px;
-  }
-  
-  h1.title {
-    color: #f0f0f0; 
-    font-size: 1.5rem;
-    margin-bottom: 20px;
-    font-weight: 700;
-  }
-  
-  /* Bố cục 2 cột cho màn hình lớn */
-  .content-layout {
-      display: flex;
-      gap: 20px; /* Khoảng cách giữa 2 cột */
-      align-items: flex-start; /* Căn trên cùng */
-  }
+    <div class="min-h-screen p-4 sm:p-8 flex flex-col items-center">
+        <!-- Header -->
+        <header class="w-full max-w-4xl text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-blue-700 tracking-tight">STEAM Lab Tool Inspector</h1>
+            <p class="text-gray-500 mt-2 text-lg">Identify tools and learn how to use them safely.</p>
+        </header>
 
-  .webcam-column {
-      flex: 1; /* Chiếm 1 phần */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-  }
+        <!-- Main Content Grid -->
+        <div id="app-container" class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-  .info-column {
-      flex: 1; /* Chiếm 1 phần */
-  }
+            <!-- Detection Panel (Left/Top) -->
+            <div class="bg-white p-6 rounded-xl shadow-2xl transition-all duration-300">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-800 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.55 4.55a.5.5 0 010 .71l-5.86 5.86a.5.5 0 01-.71 0L4.55 15a.5.5 0 010-.71l5.86-5.86a.5.5 0 01.71 0L15 10zM12 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    1. Scan a Tool
+                </h2>
 
-  /* Responsive: Trên màn hình nhỏ, chuyển về 1 cột */
-  @media (max-width: 600px) {
-      .content-layout {
-          flex-direction: column;
-      }
-      .webcam-column, .info-column {
-          width: 100%;
-      }
-  }
+                <!-- Control Button -->
+                <button type="button" onclick="init()" id="start-button"
+                    class="w-full py-3 mb-4 text-white font-bold bg-green-500 hover:bg-green-600 rounded-lg transition duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-green-300">
+                    Start Camera & Model
+                </button>
 
+                <!-- Loading/Webcam Container -->
+                <div id="webcam-container" class="w-full aspect-video flex justify-center items-center bg-gray-100 rounded-lg overflow-hidden">
+                    <p id="loading-message" class="text-gray-500 text-center">Press 'Start Camera & Model' above.</p>
+                </div>
 
-  /* Styling cho nút Start */
-  .start-button {
-    background-color: #3b82f6; 
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-    width: 100%; /* Chiếm toàn bộ chiều ngang cột */
-  }
-  
-  .start-button:hover { background-color: #2563eb; transform: translateY(-1px); }
-  .start-button:active { background-color: #1d4ed8; transform: translateY(1px); }
-  
-  /* Vùng chứa webcam */
-  #webcam-container canvas {
-    border: 4px solid #666666; 
-    border-radius: 12px;
-    display: block; 
-    margin: 0 auto 10px; /* Thêm margin dưới */
-    width: 100%; 
-    height: auto;
-    max-width: 320px; /* Giới hạn kích thước camera */
-  }
-  
-  /* Vùng chứa kết quả (Label) */
-  #label-container {
-    padding: 10px 15px;
-    background-color: #555555; 
-    color: #ffffff; 
-    font-size: 1.1rem;
-    font-weight: 700;
-    border-radius: 8px;
-    min-height: 40px; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-transform: uppercase; 
-    width: 100%;
-    max-width: 320px; /* Giới hạn kích thước */
-  }
+                <!-- Label Container (Predictions - Now displays ONLY the best name and the info button) -->
+                <div id="label-container" class="mt-4 p-3 bg-blue-100 rounded-lg hidden flex justify-between items-center">
+                    <span id="detected-tool-name" class="text-lg font-bold text-gray-800">No Tool Detected</span>
+                    <button type="button" onclick="generateExplanation('manual')" id="info-button" disabled
+                        class="px-4 py-2 text-white font-semibold bg-blue-500 rounded-lg transition duration-150 ease-in-out shadow-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        Get Tool Info ℹ️
+                    </button>
+                </div>
+            </div>
 
-  /* Thêm hiệu ứng loading */
-  .loading-message {
-    font-style: italic;
-    color: #cccccc; 
-    margin-bottom: 20px;
-  }
+            <!-- Information Panel (Right/Bottom) -->
+            <div class="bg-white p-6 rounded-xl shadow-2xl transition-all duration-300">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-800 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    2. Tool Information & Safety
+                </h2>
 
-  /* New styles for Gemini features */
-  .gemini-section {
-    padding-top: 0; 
-    border-top: none; 
-    margin-top: 0;
-  }
-  
-  .gemini-button {
-    background-color: #f59e0b; 
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    margin-bottom: 15px;
-    width: 100%;
-  }
+                <div id="info-display" class="p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg min-h-64">
+                    <p class="text-gray-600 italic">Information will appear here after you scan a tool and click 'Get Tool Info'.</p>
+                </div>
+            </div>
 
-  .gemini-button:hover { background-color: #d97706; }
-  .gemini-button:disabled { background-color: #fcd34d; cursor: not-allowed; }
+        </div>
+        
+        <!-- Custom Q&A Chat Panel (New Gemini Feature) -->
+        <div class="w-full max-w-4xl mt-8 bg-white p-6 rounded-xl shadow-2xl transition-all duration-300">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800 flex items-center">
+                <span class="text-pink-500 mr-2">✨</span> 3. Ask the STEAM AI
+            </h2>
 
-  #gemini-result-container {
-    margin-top: 0;
-    padding: 15px;
-    background-color: #555555; 
-    border-radius: 8px;
-    text-align: left;
-    min-height: 150px; /* Tăng chiều cao tối thiểu để giảm giật */
-    line-height: 1.4;
-    font-size: 0.9rem;
-    color: #f0f0f0; 
-    overflow-y: auto; /* Cho phép cuộn bên trong nếu nội dung quá dài */
-    max-height: 350px; /* Giới hạn chiều cao cho desktop */
-  }
+            <!-- Chat History -->
+            <div id="chat-history" class="h-64 overflow-y-auto p-4 mb-4 border rounded-lg bg-gray-50 flex flex-col space-y-2">
+                <div class="ai-message chat-message">Hello! Ask me any question about the detected tool or STEAM topics.</div>
+            </div>
 
-  /* Cải thiện hiển thị Markdown: List và Paragraph */
-  #gemini-result-container p { margin-bottom: 10px; line-height: 1.6; }
-  #gemini-result-container ul { margin-top: 10px; margin-bottom: 10px; padding-left: 20px; }
-  #gemini-result-container li { margin-bottom: 5px; line-height: 1.4; font-weight: 400; }
-  #gemini-result-container strong { color: #ffcc66; }
-
-  .gemini-loading { color: #ffcc66; font-style: italic; }
-  .gemini-error { color: #ff8888; font-weight: 600; }
-  .gemini-response { color: #ffffff; }
-  .gemini-sources {
-      margin-top: 10px;
-      font-size: 0.75rem;
-      color: #aaaaaa;
-      border-top: 1px dashed #666666;
-      padding-top: 5px;
-  }
-  .gemini-sources a { color: #88ccee; text-decoration: none; }
-  .gemini-sources a:hover { text-decoration: underline; }
-</style>
-
-<div class="main-wrapper">
-    <div class="container">
-      <h1 class="title">Object Recognition (STEAM Project)</h1>
-      <div class="loading-message" id="status-message">Loading model...</div>
-      
-      <!-- Nút bấm gọi hàm startWebcam() - Đặt ngoài bố cục 2 cột cho màn hình nhỏ -->
-      <button type="button" onclick="startWebcam()" class="start-button" id="start-button" disabled>START</button>
-      
-      <div class="content-layout">
-          <!-- CỘT 1: WEBCAM & KẾT QUẢ DETECTION -->
-          <div class="webcam-column">
-              <!-- Vùng hiển thị webcam -->
-              <div id="webcam-container"></div>
-              
-              <!-- Vùng hiển thị kết quả nhận diện -->
-              <div id="label-container">-- Waiting for model --</div>
-          </div>
-
-          <!-- CỘT 2: GEMINI INFO & SAFETY -->
-          <div class="info-column gemini-section">
-              <!-- Nút gọi Gemini API -->
-              <button type="button" onclick="generateExplanation()" class="gemini-button" id="generate-button" disabled>
-                  ✨ Get Info & Safety Guide
-              </button>
-
-              <!-- Vùng hiển thị kết quả từ Gemini -->
-              <div id="gemini-result-container">
-                  <p>Press the button after detection to get information and safety guide.</p>
-              </div>
-          </div>
-      </div>
+            <!-- Chat Input -->
+            <div class="flex space-x-3">
+                <input type="text" id="chat-input" placeholder="E.g., What is a simple project I can make with a hammer?"
+                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    onkeydown="if(event.key === 'Enter') document.getElementById('ask-button').click()">
+                <button type="button" onclick="askAI()" id="ask-button"
+                    class="px-5 py-3 text-white font-semibold bg-pink-500 hover:bg-pink-600 rounded-lg transition duration-150 ease-in-out shadow-md focus:outline-none focus:ring-4 focus:ring-pink-300 disabled:bg-gray-400">
+                    Ask ✨
+                </button>
+            </div>
+        </div>
     </div>
-</div>
 
-<!-- Tải thư viện TensorFlow.js và Teachable Machine Image -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-<!-- Thư viện chuyển đổi Markdown -->
-<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/lib/marked.umd.min.js"></script> 
 
-<script type="text/javascript">
-    // the link to your model provided by Teachable Machine export panel
-    const URL = "https://teachablemachine.withgoogle.com/models/XMAxIMwQf/";
-
-    // Gemini API Configuration
-    const apiKey = ""; // Canvas runtime provides this key
-    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-    
-    let model, webcam, maxPredictions;
-    let isModelLoaded = false;
-    let labelContainer; 
-    let currentDetectedObject = ''; // Stores the detected object name for Gemini
-
-    const statusMessage = document.getElementById('status-message');
-    const startButton = document.getElementById('start-button');
-    const generateButton = document.getElementById('generate-button');
-    const geminiResultContainer = document.getElementById('gemini-result-container');
-    
-    const modelURL = URL + "model.json";
-    const metadataURL = URL + "metadata.json";
-
-    // Hàm hỗ trợ backoff (cho Gemini API)
-    const maxRetries = 5;
-    const initialDelay = 1000;
-
-    async function fetchWithExponentialBackoff(url, options, retryCount = 0) {
-        // Tái tạo URL để đảm bảo apiKey được đính kèm đúng cách hoặc bỏ qua khi rỗng
-        let finalUrl = url;
+    <script>
+        // --- Configuration ---
+        const URL = "https://teachablemachine.withgoogle.com/models/KKMgqPodwM/";
+        const CONFIDENCE_THRESHOLD = 0.7; // Minimum probability to consider a tool 'detected'
         
-        // Chỉ thêm apiKey vào URL nếu nó không rỗng
-        if (apiKey) {
-            const separator = url.includes('?') ? '&' : '?';
-            finalUrl = `${url}${separator}key=${apiKey}`;
-        }
-        // Ghi chú: Trong môi trường Canvas, Canvas sẽ tự động thêm key,
-        // nhưng việc đảm bảo logic URL đúng là rất quan trọng.
+        // CHỈ SỬ DỤNG BASE URL. Hệ thống sẽ tự động thêm API Key.
+        const API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+        const apiKey = ""; 
 
-        try {
-            const response = await fetch(finalUrl, options);
-            if (!response.ok) {
-                // Throwing error to trigger retry logic
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response;
-        } catch (error) {
-            if (retryCount < maxRetries) {
-                const delay = initialDelay * Math.pow(2, retryCount);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                return fetchWithExponentialBackoff(url, options, retryCount + 1);
-            } else {
-                console.error("Failed to fetch after multiple retries:", error);
-                throw error;
-            }
-        }
-    }
-
-    // Hàm tải mô hình (Tự động chạy khi trang load)
-    async function loadModel() {
-        labelContainer = document.getElementById("label-container");
-        
-        try {
-            console.log("Loading model from:", modelURL); // Log for debugging
-            model = await tmImage.load(modelURL, metadataURL);
-            maxPredictions = model.getTotalClasses();
-            isModelLoaded = true;
-            statusMessage.innerText = "Model loaded. Press START.";
-            startButton.disabled = false; // Enable button after loading
-            labelContainer.innerText = "-- Ready --";
-
-        } catch (error) {
-            console.error("ERROR LOADING MODEL:", error); // Log specific error
-            statusMessage.innerText = "ERROR: Could not load model. Please check the URL and ensure the model is Published publicly.";
-            startButton.disabled = true;
-        }
-    }
-
-    // Hàm khởi động Webcam (Chỉ chạy khi nhấn nút)
-    async function startWebcam() {
-        if (!isModelLoaded) return;
-        
-        statusMessage.innerText = "Starting webcam...";
-        startButton.disabled = true; // Disable button while starting
-
-        try {
-            const flip = true; 
-            webcam = new tmImage.Webcam(320, 240, flip);
-            await webcam.setup(); // Request camera permission
-            await webcam.play();
-
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-            
-            labelContainer.innerText = "Detecting...";
-            
-            statusMessage.style.display = 'none'; // Hide status message
-            startButton.style.display = 'none'; // Hide start button
-            
-            // Start the detection loop
-            window.requestAnimationFrame(loop);
-
-        } catch (error) {
-            console.error("ERROR STARTING CAMERA:", error); // Log specific error
-            statusMessage.style.display = 'block';
-            statusMessage.innerText = "ERROR: Could not start camera. Please check: 1. Did you click 'Allow' for camera access? 2. Does your browser support the camera?";
-            startButton.disabled = false;
-            startButton.style.display = 'block';
-        }
-    }
+        // Danh sách các công cụ cần cảnh báo (dùng chữ hoa hoặc chữ thường để khớp với tên lớp trong Teachable Machine)
+        const TEACHER_CONSULTATION_TOOLS = [
+            "Knife", 
+            "Rotary cutter", 
+            "Measure tape", 
+            "Wrench",
+            "knife", 
+            "rotary cutter", 
+            "measure tape", 
+            "wrench"
+        ].map(s => s.toLowerCase());
 
 
-    async function loop() {
-        if (!isModelLoaded || !webcam) return;
-        
-        webcam.update();
-        await predict();
-        window.requestAnimationFrame(loop);
-    }
+        let model, webcam, maxPredictions;
+        let isRunning = false;
+        let lastDetectedClass = "Background Noise"; // Stores the name of the best prediction
+        let isGeminiRunning = false; // Flag to prevent concurrent calls
 
-    async function predict() {
-        const prediction = await model.predict(webcam.canvas);
-        let topPrediction = null;
+        const infoButton = document.getElementById('info-button');
+        const infoDisplay = document.getElementById("info-display");
 
-        // Find the class with the highest probability
-        for (let i = 0; i < maxPredictions; i++) {
-            if (topPrediction === null || prediction[i].probability > topPrediction.probability) {
-                topPrediction = prediction[i];
-            }
-        }
-        
-        // Display the detected object name and update the variable for Gemini
-        if (topPrediction !== null) {
-            currentDetectedObject = topPrediction.className; 
-            labelContainer.innerText = currentDetectedObject; 
-            generateButton.disabled = false;
-        }
-    }
-    
-    // Hàm gọi Gemini API - Đã cập nhật để bao gồm cả hướng dẫn an toàn
-    async function generateExplanation() {
-        if (!currentDetectedObject || currentDetectedObject === '-- NOT STARTED --' || currentDetectedObject === 'Detecting...' || currentDetectedObject === '-- Ready --') {
-            geminiResultContainer.innerHTML = '<p class="gemini-error">Please detect an object first.</p>';
-            return;
+        // --- Helper Functions ---
+        function appendMessage(sender, text) {
+            const history = document.getElementById('chat-history');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}-message`;
+            messageDiv.textContent = text;
+            history.appendChild(messageDiv);
+            // Scroll to the bottom
+            history.scrollTop = history.scrollHeight;
         }
 
-        geminiResultContainer.innerHTML = '<p class="gemini-loading">Querying Gemini... (Searching for information)</p>';
-        generateButton.disabled = true;
-        generateButton.innerText = "Loading...";
-
-        // Cập nhật System Prompt: Ngôn ngữ tiếng Anh, cấp độ THCS (Middle School)
-        const systemPrompt = "You are a friendly and knowledgeable Middle School (Grade 7-8) STEAM Lab Assistant. Your task is to provide a concise, engaging, and easy-to-read response (in English only) about the object the student is researching. Your response must include: 1. A very short explanation (one sentence, use bold formatting). 2. If it is a tool or lab equipment, provide 3-5 basic safety usage bullet points relevant to a Makerspace or Lab (use bullet list). 3. If it is NOT a tool, suggest one simple, relevant STEAM project or application idea instead (use bold formatting for the project name). Keep the tone encouraging and brief.";
-        const userQuery = `Explain "${currentDetectedObject}" and provide safety usage guidelines (if a tool) or suggest a simple STEAM project (if not a tool).`;
-
-        const payload = {
-            contents: [{ parts: [{ text: userQuery }] }],
-            tools: [{ "google_search": {} }],
-            systemInstruction: {
-                parts: [{ text: systemPrompt }]
-            },
-        };
-
-        try {
-            const response = await fetchWithExponentialBackoff(geminiApiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-            const candidate = result.candidates?.[0];
-
-            if (candidate && candidate.content?.parts?.[0]?.text) {
-                const markdownText = candidate.content.parts[0].text;
-                
-                // CHUYỂN ĐỔI MARKDOWN SANG HTML SỬ DỤNG Marked.js
-                const htmlContent = marked.parse(markdownText);
-                
-                // Extract sources
-                let sourcesHtml = '';
-                const groundingMetadata = candidate.groundingMetadata;
-                if (groundingMetadata && groundingMetadata.groundingAttributions) {
-                    const sources = groundingMetadata.groundingAttributions
-                        .map(attribution => ({
-                            uri: attribution.web?.uri,
-                            title: attribution.web?.title,
-                        }))
-                        .filter(source => source.uri && source.title);
-
-                    if (sources.length > 0) {
-                        sourcesHtml = '<div class="gemini-sources">References: ';
-                        sourcesHtml += sources.slice(0, 3).map(s => `<a href="${s.uri}" target="_blank">${s.title}</a>`).join(', ');
-                        sourcesHtml += '</div>';
+        // Hàm hỗ trợ backoff (cho Gemini API)
+        const maxRetries = 3;
+        async function fetchWithExponentialBackoff(url, options) {
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
+                    return response;
+                } catch (error) {
+                    // Do not log 401 errors, as they are handled by the environment
+                    if (error.message.includes('401')) {
+                         console.error("Authentication error (401). Retrying is unlikely to help.");
+                         throw error; 
+                    }
+                    if (attempt === maxRetries - 1) {
+                        throw error;
+                    }
+                    // Wait before retrying (exponential backoff)
+                    const delay = Math.pow(2, attempt) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        
+        // --- Core Functions: Teachable Machine ---
+
+        async function init() {
+            if (isRunning) return;
+            isRunning = true;
+
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+            const startButton = document.getElementById("start-button");
+            const loadingMessage = document.getElementById("loading-message");
+            const webcamContainer = document.getElementById("webcam-container");
+            const labelContainer = document.getElementById("label-container");
+
+
+            startButton.disabled = true;
+            startButton.textContent = "Loading Model & Camera...";
+            loadingMessage.textContent = "Loading Teachable Machine model...";
+            labelContainer.classList.remove('hidden'); // Show the detection status box
+
+            try {
+                // Load model
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+                loadingMessage.textContent = "Model loaded. Setting up camera...";
+
+                // Setup webcam
+                const flip = true; 
+                webcam = new tmImage.Webcam(400, 300, flip); 
+                await webcam.setup(); 
+                await webcam.play();
+
+                // Append elements to the DOM
+                webcamContainer.innerHTML = ''; 
+                webcamContainer.appendChild(webcam.canvas);
+                webcam.canvas.className = "w-full h-auto rounded-lg shadow-lg";
+
+                startButton.textContent = "Camera Running";
+                startButton.classList.remove('bg-green-500', 'hover:bg-green-600', 'focus:ring-green-300');
+                startButton.classList.add('bg-gray-400', 'cursor-default');
+
+                // Initial UI state
+                document.getElementById('detected-tool-name').textContent = "Waiting for tool...";
+                infoButton.disabled = true;
+
+                // Start the prediction loop
+                window.requestAnimationFrame(loop);
+                
+            } catch (error) {
+                console.error("Initialization failed:", error);
+                loadingMessage.textContent = "Error: Could not load model or access camera. Please check permissions.";
+                startButton.textContent = "Start Camera & Model (Error)";
+                startButton.disabled = false;
+                isRunning = false;
+                labelContainer.classList.add('hidden');
+            }
+        }
+
+        async function loop() {
+            if (!isRunning) return;
+            webcam.update(); 
+            await predict();
+            window.requestAnimationFrame(loop);
+        }
+
+        // Run the webcam image through the image model
+        async function predict() {
+            const prediction = await model.predict(webcam.canvas);
+            
+            // Sort predictions by probability (descending)
+            prediction.sort((a, b) => b.probability - a.probability);
+
+            const bestPrediction = prediction[0];
+            const detectedNameElement = document.getElementById('detected-tool-name');
+            
+            let newDetectedClass = "Background Noise";
+            
+            // Check if the best prediction meets the confidence threshold
+            if (bestPrediction.probability >= CONFIDENCE_THRESHOLD) {
+                newDetectedClass = bestPrediction.className;
+                
+                let displayText = newDetectedClass;
+                
+                // --- LOGIC MỚI: Thêm cảnh báo cho công cụ nguy hiểm ---
+                if (TEACHER_CONSULTATION_TOOLS.includes(newDetectedClass.toLowerCase())) {
+                    displayText += '<span class="ask-teacher">(Ask Teacher Before Use!)</span>';
                 }
                 
-                // Chèn nội dung HTML đã được định dạng
-                geminiResultContainer.innerHTML = `<div class="gemini-response">${htmlContent}</div>${sourcesHtml}`;
-
+                detectedNameElement.innerHTML = displayText;
+                infoButton.disabled = false;
+                infoButton.classList.remove('bg-gray-400');
+                infoButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                
             } else {
-                geminiResultContainer.innerHTML = '<p class="gemini-error">Gemini failed to generate a response.</p>';
+                newDetectedClass = "Background Noise";
+                detectedNameElement.textContent = "No Tool Detected";
+                infoButton.disabled = true;
+                infoButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                infoButton.classList.add('bg-gray-400');
             }
 
-        } catch (error) {
-            console.error("Gemini API Error:", error);
-            geminiResultContainer.innerHTML = '<p class="gemini-error">API connection error. Please try again later.</p>';
-        } finally {
-            generateButton.disabled = false;
-            generateButton.innerText = "✨ Get Info & Safety Guide";
+            // Update the stored class only if it changes (for the info button)
+            if (newDetectedClass !== lastDetectedClass) {
+                lastDetectedClass = newDetectedClass;
+            }
         }
-    }
+        
+        // --- Gemini API Call: Structured Tool Info (Feature 1) ---
+        // Đã đổi tên thành generateExplanation và loại bỏ JSON schema
+        async function generateExplanation(source = 'manual') {
+            const currentClass = lastDetectedClass;
+            // Prevent searching for 'Background Noise'
+            if (currentClass === "Background Noise" || !currentClass || isGeminiRunning) return; 
 
+            isGeminiRunning = true; // Set flag to prevent concurrent calls
+            
+            // Show loading state
+            const loadingHtml = `
+                <div class="flex flex-col items-center justify-center p-8 min-h-64">
+                    <svg class="animate-spin h-8 w-8 text-blue-500" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="mt-4 text-blue-500 font-semibold">Searching for safety guide on "${currentClass}"...</p>
+                    <p class="text-sm text-gray-500 mt-1">This may take a few seconds.</p>
+                </div>`;
+            
+            infoDisplay.innerHTML = loadingHtml;
+            infoDisplay.classList.remove('border-yellow-500', 'border-green-500');
+            infoDisplay.classList.add('border-blue-500');
+            infoButton.disabled = true;
+            infoButton.textContent = "Loading...";
 
-    // Tải mô hình khi trang web tải xong
-    window.onload = loadModel; 
-</script>
+            const systemPrompt = `You are a friendly and precise STEAM Lab safety expert. Your task is to provide concise information about the tool suitable for Grade 7 and 8 students. Your response must include:
+            1. The name of the tool and a short, one-sentence description.
+            2. A section titled "HOW TO USE IT 🛠️" with 3-4 simple, clear steps for usage.
+            3. A section titled "SAFETY RULES ⚠️" with 3-4 crucial safety rules, emphasizing eye protection and careful handling.
+            Format the response clearly using Markdown headings and bullet lists.`;
+            
+            const userQuery = `Find and summarize the usage and safety guidelines for the tool named: "${currentClass}".`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }], // Enable Google Search
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+            
+            const apiUrl = API_BASE_URL;
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const markdownText = candidate.content.parts[0].text;
+                    displayToolInfo(markdownText, candidate.groundingMetadata);
+                } else {
+                    infoDisplay.innerHTML = `<p class="text-red-600 font-bold p-4">❌ Error: Could not generate tool information.</p>`;
+                    infoDisplay.classList.remove('border-blue-500');
+                    infoDisplay.classList.add('border-red-500');
+                }
+                
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                infoDisplay.innerHTML = `
+                    <p class="text-red-600 font-bold p-4">❌ Error: API connection failed after retries.</p>
+                    <p class="text-gray-600 italic px-4 pb-4">Please check your network or try again later.</p>`;
+                infoDisplay.classList.remove('border-blue-500');
+                infoDisplay.classList.add('border-red-500');
+            } finally {
+                isGeminiRunning = false;
+                infoButton.disabled = false;
+                infoButton.textContent = "Get Tool Info ℹ️";
+            }
+        }
+
+        // Renders the tool information into the right panel using Markdown
+        function displayToolInfo(markdownText, groundingMetadata) {
+            
+            // 1. Convert Markdown to HTML
+            const htmlContent = marked.parse(markdownText);
+            
+            // 2. Extract and format sources (references)
+            let sourcesHtml = '';
+            if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                const sources = groundingMetadata.groundingAttributions
+                    .map(attribution => ({
+                        uri: attribution.web?.uri,
+                        title: attribution.web?.title,
+                    }))
+                    .filter(source => source.uri && source.title);
+
+                if (sources.length > 0) {
+                    sourcesHtml = '<div class="mt-4 pt-2 border-t border-gray-200 text-xs text-gray-500">';
+                    sourcesHtml += 'Source(s): ';
+                    sourcesHtml += sources.slice(0, 3).map(s => `<a href="${s.uri}" target="_blank" class="text-blue-500 hover:underline">${s.title}</a>`).join(' | ');
+                    sourcesHtml += '</div>';
+                }
+            }
+
+            // 3. Update the display container
+            infoDisplay.innerHTML = `<div class="p-2">${htmlContent}</div>${sourcesHtml}`;
+            infoDisplay.classList.remove('border-yellow-500', 'border-blue-500', 'border-red-500');
+            infoDisplay.classList.add('border-green-500'); 
+        }
+
+        // --- Gemini API Call: Custom Q&A (Feature 2) ---
+
+        async function askAI() {
+            const inputElement = document.getElementById('chat-input');
+            const askButton = document.getElementById('ask-button');
+            const userQuery = inputElement.value.trim();
+
+            if (!userQuery) return;
+
+            // Display user message and clear input
+            appendMessage('user', userQuery);
+            inputElement.value = '';
+            askButton.disabled = true;
+
+            // Display AI loading message
+            appendMessage('ai', '...');
+            const history = document.getElementById('chat-history');
+            const aiLoadingMessage = history.lastChild;
+
+            // System prompt for the chat feature
+            const systemPrompt = "You are a helpful and engaging STEAM tutor for Grade 7/8 students. Answer questions concisely and use simple language. If the user asks about the currently detected tool, integrate that knowledge into your answer. The currently detected tool is: " + lastDetectedClass;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }], // Use search grounding for accurate answers
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+            
+            // CHỈ SỬ DỤNG BASE URL. Hệ thống sẽ tự động thêm API Key.
+            const apiUrl = API_BASE_URL;
+            
+            let aiResponseText = "Sorry, I couldn't get an answer right now. Please try again.";
+
+            try {
+                const response = await fetchWithExponentialBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    aiResponseText = candidate.content.parts[0].text;
+                }
+                
+            } catch (error) {
+                console.error("AI Chat failed:", error);
+            } finally {
+                // Remove loading message and display final AI response
+                history.removeChild(aiLoadingMessage);
+                appendMessage('ai', aiResponseText);
+                askButton.disabled = false;
+            }
+        }
+
+    </script>
+</body>
+</html>
