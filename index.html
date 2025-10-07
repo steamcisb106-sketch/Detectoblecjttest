@@ -67,7 +67,7 @@
     <div class="min-h-screen p-4 sm:p-8 flex flex-col items-center">
         <!-- Header -->
         <header class="w-full max-w-4xl text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-blue-700 tracking-tight">STEAM Lab Tool Inspector</h1>
+            <h1 class="4xl font-extrabold text-blue-700 tracking-tight">STEAM Lab Tool Inspector</h1>
             <p class="text-gray-500 mt-2 text-lg">Identify tools and learn how to use them safely.</p>
         </header>
 
@@ -148,7 +148,7 @@
         
         // CHỈ SỬ DỤNG BASE URL. Hệ thống sẽ tự động thêm API Key.
         const API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
-        const apiKey = ""; 
+        const apiKey = "AIzaSyDBI0zEr8HwlrdxEvkZ5QjJ4wXXcMJO9Sg"; // API Key được cung cấp bởi người dùng để khắc phục lỗi 401 khi Public. 
 
         // Danh sách các công cụ cần cảnh báo (dùng chữ hoa hoặc chữ thường để khớp với tên lớp trong Teachable Machine)
         const TEACHER_CONSULTATION_TOOLS = [
@@ -185,9 +185,14 @@
         // Hàm hỗ trợ backoff (cho Gemini API)
         const maxRetries = 3;
         async function fetchWithExponentialBackoff(url, options) {
+            
+            // Explicitly append key to the URL if it exists. This is crucial for environments 
+            // where the authentication header (implicit injection) fails on publish.
+            const apiUrlWithKey = apiKey ? `${url}?key=${apiKey}` : url;
+
             for (let attempt = 0; attempt < maxRetries; attempt++) {
                 try {
-                    const response = await fetch(url, options);
+                    const response = await fetch(apiUrlWithKey, options);
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
